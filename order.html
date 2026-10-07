@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f5f3ef">
+<title>طلبية المصنع</title>
+<style>
+  :root{
+    --bg:#f5f3ef; --card:#ffffff; --line:#e6e2da; --ink:#1c1c1a; --mute:#6f6e69;
+    --green:#1f6e50; --green-d:#185a41; --hint:#5f7384; --tint:#e9e5dc;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,Tahoma,Arial,sans-serif;
+    padding-bottom:96px; line-height:1.45;
+  }
+  .wrap{max-width:700px; margin:0 auto; padding:10px 12px}
+  .top{display:flex; align-items:center; justify-content:space-between; margin:14px 4px 10px}
+  h1{font-size:22px; margin:0; font-weight:700}
+  .link{font-size:13px; color:var(--green); text-decoration:none; font-weight:600}
+  .link:hover{text-decoration:underline}
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:14px; margin-bottom:12px;
+  }
+  details.card > summary{
+    list-style:none; cursor:pointer; font-weight:700; font-size:17px;
+    display:flex; align-items:center; gap:6px; user-select:none;
+  }
+  details.card > summary::-webkit-details-marker{display:none}
+  details.card > summary::before{content:"▼"; font-size:13px; transition:transform .15s}
+  details.card:not([open]) > summary::before{transform:rotate(90deg)}
+  details.card[open] > summary{margin-bottom:10px}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 8px}
+  .field label{display:block; font-size:11.5px; color:var(--mute); margin:0 2px 3px}
+  .field input{
+    width:100%; height:40px; border:1px solid var(--line); border-radius:10px;
+    background:var(--bg); padding:0 10px; font:inherit; font-size:16px; color:inherit;
+    text-align:right;
+  }
+  input:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible{
+    outline:2px solid var(--green); outline-offset:2px;
+  }
+
+  .hint{margin:0; font-size:13px; color:var(--hint)}
+
+  /* order lines */
+  .line{
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px;
+    padding:10px; border:1px solid var(--line); border-radius:12px;
+    background:var(--bg); margin-top:8px;
+  }
+  .pinfo{flex:1; min-width:140px}
+  .pname{font-weight:700; font-size:14.5px}
+  .pmeta{font-size:12.5px; color:var(--mute); margin-top:1px}
+  .badge{
+    display:inline-block; font-size:12px; font-weight:700; color:var(--green);
+    background:#dff0e8; border-radius:8px; padding:0 7px; margin-inline-start:4px; direction:ltr; unicode-bidi:isolate;
+  }
+  .qty{display:flex; align-items:center; gap:4px; direction:ltr}
+  .qty button{
+    width:34px; height:34px; border-radius:9px; border:1px solid var(--line);
+    background:#fff; font-size:18px; line-height:1; cursor:pointer; color:var(--ink);
+  }
+  .qty input{
+    width:56px; height:34px; text-align:center; border:1px solid var(--line);
+    border-radius:9px; font:inherit; font-size:16px; background:#fff;
+  }
+  .rm{
+    width:34px; height:34px; border:0; background:transparent; color:#a33;
+    font-size:16px; cursor:pointer; border-radius:9px;
+  }
+  .rm:hover{background:#f6e3e3}
+  .note{
+    flex-basis:100%; height:36px; border:1px solid var(--line); border-radius:9px;
+    padding:0 10px; font:inherit; font-size:14px; background:#fff; text-align:right;
+  }
+  .ofoot{display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:14px}
+  .clear{border:0; background:transparent; color:#a33; font:inherit; font-size:13px; cursor:pointer; padding:6px 4px}
+  .clear:hover{text-decoration:underline}
+
+  /* browse */
+  .search{
+    width:100%; height:42px; border:1px solid var(--line); border-radius:10px;
+    background:var(--bg); padding:0 12px; font:inherit; font-size:16px; text-align:right;
+    margin-bottom:8px;
+  }
+  .tiles{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .tile{
+    background:var(--bg); border:1px solid var(--line); border-radius:12px;
+    padding:14px 8px; min-height:74px; cursor:pointer; font:inherit; color:inherit;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  }
+  .tile:hover{border-color:var(--green)}
+  .tname{font-weight:700; font-size:15px}
+  .tcode{font-size:12.5px; color:var(--mute)}
+
+  .subhead{display:flex; align-items:center; gap:10px; margin:2px 0 4px}
+  .subhead .back{
+    border:1px solid var(--line); background:#fff; border-radius:9px; padding:6px 12px;
+    font:inherit; font-size:13px; cursor:pointer; color:var(--ink);
+  }
+  .mute,.sub{color:var(--mute); font-size:13px}
+  .sub{margin:4px 2px}
+  .catlabel{margin:14px 2px 0; font-weight:700; font-size:14px; color:var(--green)}
+  .empty{padding:18px 6px; text-align:center; color:var(--mute); font-size:14px}
+  .notice{
+    background:#fff6dd; border:1px solid #efdca0; color:#6a5510; border-radius:10px;
+    padding:9px 12px; font-size:13px; margin-bottom:8px;
+  }
+
+  .prow{
+    display:flex; align-items:center; gap:10px; padding:8px;
+    border:1px solid var(--line); border-radius:12px; background:var(--bg); margin-top:8px;
+  }
+  .thumb{width:46px; height:46px; border-radius:8px; background:var(--tint); flex:none; overflow:hidden}
+  .thumb img{width:100%; height:100%; object-fit:cover; display:block}
+  .add{
+    border:1px solid var(--green); color:var(--green); background:#fff; border-radius:10px;
+    padding:8px 14px; font:inherit; font-weight:700; font-size:14px; cursor:pointer; flex:none;
+  }
+  .add:hover{background:var(--green); color:#fff}
+
+  /* bottom bar */
+  .bar{
+    position:fixed; inset-inline:0; bottom:0; background:#fff; border-top:1px solid var(--line);
+    padding:10px 10px calc(10px + env(safe-area-inset-bottom)); display:flex; align-items:center; gap:12px;
+  }
+  .count{white-space:nowrap; color:var(--mute); font-size:13px}
+  .count b{color:var(--ink); font-size:16px; margin-inline-end:3px}
+  #exportBtn{
+    flex:1; height:46px; border:0; border-radius:12px; background:var(--green); color:#fff;
+    font:inherit; font-weight:700; font-size:15px; cursor:pointer;
+  }
+  #exportBtn:hover{background:var(--green-d)}
+
+  .toast{
+    position:fixed; left:50%; bottom:82px; transform:translateX(-50%); background:var(--ink); color:#fff;
+    padding:10px 16px; border-radius:10px; font-size:14px; opacity:0; pointer-events:none;
+    transition:opacity .2s; max-width:90vw; text-align:center;
+  }
+  .toast.on{opacity:1}
+
+  @media (max-width:420px){
+    .grid{grid-template-columns:1fr}
+    h1{font-size:20px}
+  }
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <h1>📦 طلبية المصنع</h1>
+    <a class="link" href="index.html">الكتالوج</a>
+  </div>
+
+  <details class="card" open>
+    <summary>بيانات الطلب</summary>
+    <div class="grid">
+      <div class="field"><label for="f_branch">Branch</label><input id="f_branch" type="text" autocomplete="off"></div>
+      <div class="field"><label for="f_delivery">Delivery Date</label><input id="f_delivery" type="date"></div>
+
+      <div class="field"><label for="f_orderDate">Order Date</label><input id="f_orderDate" type="date"></div>
+      <div class="field"><label for="f_priority">Priority</label><input id="f_priority" type="text" list="priorityList" autocomplete="off"></div>
+
+      <div class="field"><label for="f_type">Order Type</label><input id="f_type" type="text" autocomplete="off"></div>
+      <div class="field"><label for="f_location">Delivery Location</label><input id="f_location" type="text" autocomplete="off"></div>
+
+      <div class="field"><label for="f_bm">Branch Manager</label><input id="f_bm" type="text" autocomplete="off"></div>
+      <div class="field"><label for="f_am">Area Manager</label><input id="f_am" type="text" autocomplete="off"></div>
+    </div>
+    <datalist id="priorityList"><option value="1st car"><option value="2nd car"><option value="3rd car"></datalist>
+  </details>
+
+  <details class="card" open>
+    <summary>طلبك <bdi>(<span id="cnt">0</span>)</bdi></summary>
+    <div id="orderBody"></div>
+  </details>
+
+  <section class="card">
+    <input id="search" class="search" type="search" placeholder="🔍 بحث بالاسم أو الكود" autocomplete="off">
+    <div id="browseBody"><div class="empty">جارٍ تحميل المنتجات...</div></div>
+  </section>
+</main>
+
+<div class="bar">
+  <span class="count"><b id="lineCount">0</b>سطر</span>
+  <button id="exportBtn" type="button">تصدير الطلب إلى Excel</button>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- Optional: products.js (window.PRODUCTS_DATA = [...]) lets this page work even when opened as a local file -->
+<script src="products.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  var LS = 'factoryOrder.v1';
+  var $ = function(s){ return document.querySelector(s); };
+  var esc = function(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  };
+
+  var FIELDS = {
+    branch:'f_branch', delivery:'f_delivery', priority:'f_priority', orderDate:'f_orderDate',
+    type:'f_type', location:'f_location', branchMgr:'f_bm', areaMgr:'f_am'
+  };
+
+  function today(){
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  var DEFAULTS = {
+    branch:'Chocolala RAK2', delivery:'', priority:'1st car', orderDate:today(),
+    type:'SHOP Order', location:'RAK2', branchMgr:'M. osama Alhallak', areaMgr:'Ahmed Kadour'
+  };
+
+  var state = { info:{}, order:[], cat:null, q:'' };
+  var products = [];
+  var byKey = {};
+  var usingSample = false;
+
+  var keyOf = function(p){ return (p.code || '') + '|' + p.name; };
+  var groupOf = function(p){ return p.collection || p.category; };
+
+  /* ---------- storage ---------- */
+  function load(){
+    try{
+      var s = JSON.parse(localStorage.getItem(LS) || 'null');
+      if(s){
+        state.info = Object.assign({}, DEFAULTS, s.info || {});
+        state.order = Array.isArray(s.order) ? s.order : [];
+      } else {
+        state.info = Object.assign({}, DEFAULTS);
+      }
+    }catch(e){
+      state.info = Object.assign({}, DEFAULTS);
+    }
+    state.info.orderDate = today();
+  }
+  function save(){
+    try{ localStorage.setItem(LS, JSON.stringify({info:state.info, order:state.order})); }catch(e){}
+  }
+
+  /* ---------- products ---------- */
+  function normalize(rows){
+    return rows.map(function(r){
+      var o = {};
+      Object.keys(r).forEach(function(k){ o[String(k).trim().toLowerCase()] = r[k]; });
+      var g = function(k){ return String(o[k] == null ? '' : o[k]).trim(); };
+      return {
+        code:g('code'), name:g('name'), category:g('category') || 'Other', collection:g('collection'),
+        weight:g('weight'), price:g('price'), image:g('image'), catCode:g('category_code')
+      };
+    }).filter(function(p){ return p.name || p.code; });
+  }
+
+  function sample(){
+    var cats = [['Italian Chocolate','202'],['Belgium Chocolate','1305'],['Eggs','203'],['Petit Four','222'],
+                ['Pastel Cone','120'],['Macaron','142'],['Boxes & Jars','174'],['Assorted','108']];
+    var out = [];
+    cats.forEach(function(c){
+      for(var i=1;i<=3;i++){
+        out.push({code:c[1]+'-0'+i, name:c[0]+' - Sample '+i, category:c[0], collection:c[0],
+                  weight:'', price:'', image:'', catCode:c[1]});
+      }
+    });
+    return out;
+  }
+
+  async function loadProducts(){
+    if(Array.isArray(window.PRODUCTS_DATA) && window.PRODUCTS_DATA.length){
+      return normalize(window.PRODUCTS_DATA);
+    }
+    try{
+      var r = await fetch('products.json', {cache:'no-store'});
+      if(r.ok){
+        var j = await r.json();
+        var arr = Array.isArray(j) ? j : (j.products || []);
+        if(arr.length) return normalize(arr);
+      }
+    }catch(e){}
+    try{
+      if(window.XLSX){
+        var r2 = await fetch('products.xlsx', {cache:'no-store'});
+        if(r2.ok){
+          var wb = XLSX.read(await r2.arrayBuffer(), {type:'array'});
+          var ws = wb.Sheets.Products || wb.Sheets[wb.SheetNames[0]];
+          var rows = XLSX.utils.sheet_to_json(ws, {defval:'', raw:false});
+          if(rows.length) return normalize(rows);
+        }
+      }
+    }catch(e){}
+    usingSample = true;
+    return sample();
+  }
+
+  function categories(){
+    var m = new Map();
+    products.forEach(function(p){
+      var gname = groupOf(p);
+      if(!m.has(gname)) m.set(gname, {name:gname, count:0, code:''});
+      var c = m.get(gname);
+      c.count++;
+      if(!c.code && p.catCode) c.code = p.catCode;
+    });
+    return Array.from(m.values());
+  }
+
+  /* ---------- rendering ---------- */
+  function meta(p){
+    return [p.code, p.weight, p.category].filter(Boolean)
+      .map(function(v){ return '<bdi>'+esc(v)+'</bdi>'; }).join(' | ');
+  }
+
+  function rowHtml(p){
+    var k = keyOf(p);
+    var inO = state.order.find(function(l){ return l.key === k; });
+    var img = p.image
+      ? '<img loading="lazy" alt="" src="images/'+encodeURI(p.image)+'" onerror="this.remove()">' : '';
+    return '<div class="prow">' +
+      '<span class="thumb">'+img+'</span>' +
+      '<div class="pinfo"><div class="pname">'+esc(p.name)+(inO?'<span class="badge">×'+inO.qty+'</span>':'')+'</div>' +
+      '<div class="pmeta">'+meta(p)+'</div></div>' +
+      '<button type="button" class="add" data-a="add" data-k="'+esc(k)+'">إضافة</button></div>';
+  }
+
+  function renderBrowse(){
+    var box = $('#browseBody');
+    var q = state.q.trim().toLowerCase();
+    var html = '';
+    if(usingSample){
+      html += '<div class="notice">بيانات تجريبية. ضع ملف products.json أو products.xlsx بجانب هذه الصفحة لتظهر منتجاتك.</div>';
+    }
+    if(q){
+      var res = products.filter(function(p){
+        return [p.name,p.code,p.category,p.collection].some(function(v){ return v.toLowerCase().indexOf(q) !== -1; });
+      });
+      if(!res.length){
+        html += '<div class="empty">ما في نتائج. جرّب اسم أو كود ثاني.</div>';
+      } else {
+        html += '<div class="sub">'+res.length+' نتيجة</div>' + res.slice(0,80).map(rowHtml).join('');
+        if(res.length > 80) html += '<div class="sub">اكتب أكثر لتضييق النتائج.</div>';
+      }
+    } else if(state.cat !== null){
+      var list = products.filter(function(p){ return groupOf(p) === state.cat; });
+      var buckets = new Map();
+      list.forEach(function(p){
+        if(!buckets.has(p.category)) buckets.set(p.category, []);
+        buckets.get(p.category).push(p);
+      });
+      html += '<div class="subhead"><button type="button" class="back" data-a="cats">رجوع</button>' +
+              '<b>'+esc(state.cat)+'</b><span class="mute">'+list.length+'</span></div>';
+      buckets.forEach(function(items, cname){
+        if(buckets.size > 1 || cname !== state.cat){
+          html += '<div class="catlabel">'+esc(cname)+' <span class="mute">('+items.length+')</span></div>';
+        }
+        html += items.map(rowHtml).join('');
+      });
+    } else {
+      html += '<div class="tiles">' + categories().map(function(c){
+        return '<button type="button" class="tile" data-a="cat" data-name="'+esc(c.name)+'">' +
+               '<span class="tname">'+esc(c.name)+'</span>' +
+               '<span class="tcode">'+esc(c.code || (c.count + ' صنف'))+'</span></button>';
+      }).join('') + '</div>';
+    }
+    box.innerHTML = html;
+  }
+
+  function totalQty(){ return state.order.reduce(function(s,l){ return s + (l.qty||0); }, 0); }
+  function updateTotal(){ var t = $('#totalQty'); if(t) t.textContent = totalQty(); }
+
+  function renderOrder(){
+    $('#cnt').textContent = state.order.length;
+    $('#lineCount').textContent = state.order.length;
+    var box = $('#orderBody');
+    if(!state.order.length){
+      box.innerHTML = '<p class="hint">اضغط «إضافة» بجانب أي صنف ليظهر هنا.</p>';
+      return;
+    }
+    box.innerHTML = state.order.map(function(l){
+      var m = [l.code, l.weight].filter(Boolean).map(function(v){ return '<bdi>'+esc(v)+'</bdi>'; }).join(' | ');
+      return '<div class="line" data-k="'+esc(l.key)+'">' +
+        '<div class="pinfo"><div class="pname">'+esc(l.name)+'</div><div class="pmeta">'+m+'</div></div>' +
+        '<div class="qty"><button type="button" data-a="dec" aria-label="إنقاص">−</button>' +
+        '<input type="number" inputmode="numeric" min="1" value="'+l.qty+'" data-a="qty" aria-label="الكمية">' +
+        '<button type="button" data-a="inc" aria-label="زيادة">+</button></div>' +
+        '<button type="button" class="rm" data-a="rm" aria-label="حذف الصنف">✕</button>' +
+        '<input class="note" type="text" data-a="note" placeholder="ملاحظة (اختياري)" value="'+esc(l.note||'')+'">' +
+        '</div>';
+    }).join('') +
+      '<div class="ofoot"><span>إجمالي الكمية: <b id="totalQty">'+totalQty()+'</b></span>' +
+      '<button type="button" class="clear" data-a="clear">مسح الطلب</button></div>';
+  }
+
+  /* ---------- toast ---------- */
+  var tt;
+  function toast(m){
+    var t = $('#toast');
+    t.textContent = m;
+    t.classList.add('on');
+    clearTimeout(tt);
+    tt = setTimeout(function(){ t.classList.remove('on'); }, 2200);
+  }
+
+  /* ---------- events ---------- */
+  function bindInfo(){
+    Object.keys(FIELDS).forEach(function(k){
+      var el = document.getElementById(FIELDS[k]);
+      el.value = state.info[k] || '';
+      el.addEventListener('input', function(){ state.info[k] = el.value; save(); });
+    });
+  }
+
+  $('#search').addEventListener('input', function(e){
+    state.q = e.target.value;
+    renderBrowse();
+  });
+
+  $('#browseBody').addEventListener('click', function(e){
+    var t = e.target.closest('[data-a]');
+    if(!t) return;
+    var a = t.dataset.a;
+    if(a === 'cat'){
+      state.cat = t.dataset.name;
+      renderBrowse();
+      $('#search').scrollIntoView({block:'start'});
+    } else if(a === 'cats'){
+      state.cat = null;
+      renderBrowse();
+    } else if(a === 'add'){
+      var p = byKey[t.dataset.k];
+      if(!p) return;
+      var k = keyOf(p);
+      var line = state.order.find(function(l){ return l.key === k; });
+      if(line){ line.qty++; }
+      else {
+        line = {key:k, code:p.code, name:p.name, category:p.category, collection:p.collection,
+                weight:p.weight, qty:1, note:''};
+        state.order.push(line);
+      }
+      save();
+      renderOrder();
+      var nm = t.closest('.prow').querySelector('.pname');
+      var b = nm.querySelector('.badge');
+      if(!b){ b = document.createElement('span'); b.className = 'badge'; nm.appendChild(b); }
+      b.textContent = '×' + line.qty;
+      toast('تمت الإضافة: ' + p.name);
+    }
+  });
+
+  $('#orderBody').addEventListener('click', function(e){
+    var t = e.target.closest('[data-a]');
+    if(!t) return;
+    var row = t.closest('[data-k]');
+    var l = row && state.order.find(function(x){ return x.key === row.dataset.k; });
+    switch(t.dataset.a){
+      case 'inc': if(l) l.qty++; break;
+      case 'dec': if(l) l.qty = Math.max(1, l.qty - 1); break;
+      case 'rm':  if(l) state.order = state.order.filter(function(x){ return x !== l; }); break;
+      case 'clear':
+        if(confirm('مسح كل الأصناف من الطلب؟')) state.order = [];
+        else return;
+        break;
+      default: return;
+    }
+    save(); renderOrder(); renderBrowse();
+  });
+
+  $('#orderBody').addEventListener('input', function(e){
+    var t = e.target;
+    var row = t.closest('[data-k]');
+    var l = row && state.order.find(function(x){ return x.key === row.dataset.k; });
+    if(!l) return;
+    if(t.dataset.a === 'qty'){
+      var n = parseInt(t.value, 10);
+      l.qty = n > 0 ? n : 1;
+      updateTotal();
+    } else if(t.dataset.a === 'note'){
+      l.note = t.value;
+    }
+    save();
+  });
+  $('#orderBody').addEventListener('change', function(e){
+    if(e.target.dataset.a === 'qty'){
+      var row = e.target.closest('[data-k]');
+      var l = state.order.find(function(x){ return x.key === row.dataset.k; });
+      if(l) e.target.value = l.qty;
+      renderBrowse();
+    }
+  });
+
+  /* ---------- export ---------- */
+  function fmtDate(v){
+    if(!v) return '';
+    var p = v.split('-');
+    var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return p[2] + '-' + M[parseInt(p[1],10)-1] + '-' + p[0];
+  }
+
+  $('#exportBtn').addEventListener('click', function(){
+    if(!state.order.length){ toast('الطلب فارغ. أضف أصناف أولاً.'); return; }
+    if(!state.info.delivery){
+      document.querySelector('details.card').open = true;
+      var d = $('#f_delivery'); d.scrollIntoView({block:'center'}); d.focus();
+      toast('اختر تاريخ التسليم (Delivery Date) أولاً.');
+      return;
+    }
+    if(!window.XLSX){ toast('مكتبة Excel ما انحمّلت. تأكد من الاتصال بالإنترنت.'); return; }
+
+    var i = state.info;
+    var rows = [
+      ['طلبية المصنع'], [],
+      ['Branch', i.branch], ['Delivery Date', fmtDate(i.delivery)], ['Order Date', fmtDate(i.orderDate)],
+      ['Priority', i.priority], ['Order Type', i.type], ['Delivery Location', i.location],
+      ['Branch Manager', i.branchMgr], ['Area Manager', i.areaMgr], [],
+      ['#','Code','Product','Collection','Category','Weight','Qty','Notes']
+    ];
+    state.order.forEach(function(l, n){
+      rows.push([n+1, l.code, l.name, l.collection, l.category, l.weight, l.qty, l.note || '']);
+    });
+    rows.push([]);
+    rows.push(['','','','','','Total Qty', totalQty()]);
+
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:16},{wch:18},{wch:36},{wch:20},{wch:20},{wch:12},{wch:8},{wch:30}];
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Order');
+    var name = ('Order_' + (i.branch || 'Branch') + '_' + i.delivery).replace(/[^\w\-]+/g, '_') + '.xlsx';
+    XLSX.writeFile(wb, name);
+    toast('تم تصدير الملف');
+  });
+
+  /* ---------- init ---------- */
+  (async function init(){
+    load();
+    bindInfo();
+    renderOrder();
+    products = await loadProducts();
+    products.forEach(function(p){ byKey[keyOf(p)] = p; });
+    renderBrowse();
+  })();
+})();
+</script>
+</body>
+</html>
