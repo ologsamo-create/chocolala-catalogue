@@ -310,7 +310,7 @@
       <div class="field"><label for="f_bm">Branch Manager</label><input id="f_bm" type="text" autocomplete="off"></div>
       <div class="field"><label for="f_am">Area Manager</label><input id="f_am" type="text" autocomplete="off"></div>
     </div>
-    <datalist id="priorityList"><option value="1st car"><option value="2nd car"><option value="3rd car"></datalist>
+    <datalist id="priorityList"><option value="12PM"><option value="1st car"><option value="2nd car"><option value="3rd car"></datalist>
   </section>
 
   <div class="cols">
@@ -397,8 +397,14 @@
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
   var DEFAULTS = {
-    branch:'Chocolala RAK2', delivery:'', priority:'1st car', orderDate:today(),
-    type:'SHOP Order', location:'RAK2', branchMgr:'M. osama Alhallak', areaMgr:'Ahmed Kadour'
+    branch:'RAK2', delivery:'', priority:'12PM', orderDate:today(),
+    type:'Shop order', location:'RAK2', branchMgr:'M.Osama Alhallak', areaMgr:'Mr. Ahmed Kadour'
+  };
+  /* values saved by the previous version of this page are updated once to the new wording */
+  var OLD_DEFAULTS = {
+    branch:{'Chocolala RAK2':'RAK2'}, type:{'SHOP Order':'Shop order'},
+    branchMgr:{'M. osama Alhallak':'M.Osama Alhallak'}, areaMgr:{'Ahmed Kadour':'Mr. Ahmed Kadour'},
+    priority:{'1st car':'12PM'}
   };
 
   var state = { info:{}, order:[], col:'', cat:'', q:'' };
@@ -416,6 +422,10 @@
       var s = JSON.parse(localStorage.getItem(LS) || 'null');
       if(s){
         state.info = Object.assign({}, DEFAULTS, s.info || {});
+        Object.keys(OLD_DEFAULTS).forEach(function(k){
+          var m = OLD_DEFAULTS[k][state.info[k]];
+          if(m) state.info[k] = m;
+        });
         state.order = Array.isArray(s.order) ? s.order : [];
       } else { state.info = Object.assign({}, DEFAULTS); }
     }catch(e){ state.info = Object.assign({}, DEFAULTS); }
@@ -433,7 +443,7 @@
       var g = function(k){ return String(o[k] == null ? '' : o[k]).trim(); };
       return {
         code:g('code'), name:g('name'), category:g('category') || 'Other', collection:g('collection'),
-        weight:g('weight'), price:g('price'), image:g('image')
+        weight:g('weight'), price:g('price'), image:g('image'), colour:g('colour')
       };
     }).filter(function(p){ return p.name || p.code; });
   }
@@ -732,7 +742,7 @@
     if(!l){
       p = p || byKey[k];
       if(!p) return;
-      state.order.push({key:k, code:p.code, name:p.name, category:p.category, collection:p.collection, weight:p.weight, qty:n, note:''});
+      state.order.push({key:k, code:p.code, name:p.name, category:p.category, collection:p.collection, weight:p.weight, colour:p.colour || '', qty:n, note:''});
       save(); structural(k);
       return;
     }
@@ -821,33 +831,172 @@
     }
   });
 
-  /* ---------- export ---------- */
-  function exportOrder(){
-    if(!state.order.length){ toast('الطلب فارغ. أضف أصنافاً أولاً.'); return; }
-    if(!state.info.delivery){ closeSheet(); focusDate(); toast('اختر تاريخ التسليم (Delivery Date) أولاً.'); return; }
-    if(!window.XLSX){ toast('مكتبة Excel لم تُحمَّل. تأكد من الاتصال بالإنترنت.'); return; }
+  /* ---------- export: same layout as RAK2_Chocolate_shop_order.xlsx ---------- */
+  /*BUILD_START*/
+  var GRAY = 'FFD9D9D9', WHITE = 'FFFFFFFF';
+  function toUtcDate(v){
+    var p = String(v || '').split('-');
+    return p.length === 3 ? new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])) : null;
+  }
+  function buildWorkbook(EJ, info, lines){
+    var wb = new EJ.Workbook();
+    var ws = wb.addWorksheet('Sheet1');
+    ws.columns = [{width:5.43},{width:17.86},{width:29.43},{width:10.86},{width:10.86},{width:11},{width:12}];
+    var thin = {style:'thin'}, med = {style:'medium'};
+    var last = 6 + lines.length;
+    var font = function(sz, b){ return {name:'Calibri', size:sz, bold:!!b}; };
+    var center = {horizontal:'center', vertical:'middle', wrapText:true};
 
-    var i = state.info;
+    /* base styling for the whole table */
+    for(var r = 1; r <= last; r++){
+      for(var c = 1; c <= 7; c++){
+        var cell = ws.getCell(r, c);
+        cell.border = {
+          top: r === 1 ? med : thin, bottom: r === last ? med : thin,
+          left: c === 1 ? med : thin, right: c === 7 ? med : thin
+        };
+        cell.alignment = center;
+        cell.font = font(12, r <= 6);
+        if(r === 1) cell.border.bottom = thin;
+      }
+    }
+
+    /* title */
+    ws.mergeCells('A1:G1');
+    ws.getCell('A1').value = 'CHOCOLATE ORDER';
+    ws.getCell('A1').font = font(14, true);
+
+    /* order details: label (A:B) + value (C) | label (D:E) + value (F:G); rows 2 and 4 are shaded */
+    var d = [
+      ['BRANCH', info.branch, 'DELIVERY DATE', toUtcDate(info.delivery) || info.delivery],
+      ['ORDER DATE', toUtcDate(info.orderDate) || info.orderDate, 'PRIORITY', info.priority],
+      ['ORDER TYPE', info.type, 'DELIVERY LOCATION', info.location],
+      ['BRANCH MANAGER', info.branchMgr, 'AREA MANAGER', info.areaMgr]
+    ];
+    d.forEach(function(row, i){
+      var r = i + 2, shade = (i % 2 === 0);
+      ws.mergeCells('A' + r + ':B' + r);
+      ws.mergeCells('D' + r + ':E' + r);
+      ws.mergeCells('F' + r + ':G' + r);
+      [['A', row[0]], ['C', row[1]], ['D', row[2]], ['F', row[3]]].forEach(function(x){
+        var cell = ws.getCell(x[0] + r);
+        cell.value = x[1] == null ? '' : x[1];
+        if(x[1] instanceof Date) cell.numFmt = 'mm-dd-yy';
+      });
+      if(shade){
+        for(var c = 1; c <= 7; c++) ws.getCell(r, c).fill = {type:'pattern', pattern:'solid', fgColor:{argb:GRAY}};
+      }
+    });
+
+    /* column headers */
+    ['No','ITEM CODE','ITEM NAME','QT.','UNIT','COLOR','NOTE'].forEach(function(h, i){
+      var cell = ws.getCell(6, i + 1);
+      cell.value = h;
+      cell.font = font(i === 0 ? 11 : 12, true);
+      cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:GRAY}};
+    });
+
+    /* items */
+    var cap = {3:26, 5:9, 6:10, 7:10};
+    lines.forEach(function(l, i){
+      var r = 7 + i, code = String(l.code == null ? '' : l.code).trim();
+      var vals = [i + 1, /^\d{1,15}$/.test(code) ? Number(code) : (code || null), l.name || '', l.qty, l.weight || null, l.colour || null, l.note || null];
+      var rows = 1;
+      vals.forEach(function(v, j){
+        var cell = ws.getCell(r, j + 1);
+        cell.value = v;
+        cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:WHITE}};
+        cell.font = font(j === 0 ? 11 : 12, j === 0);
+        if(cap[j + 1] && typeof v === 'string') rows = Math.max(rows, Math.ceil(v.length / cap[j + 1]));
+      });
+      ws.getRow(r).height = Math.max(24.95, rows * 16 + 9);
+    });
+
+    for(var h = 1; h <= 5; h++) ws.getRow(h).height = 30;
+    ws.getRow(6).height = 24.95;
+
+    ws.pageSetup = {orientation:'portrait', paperSize:9, fitToPage:true, fitToWidth:1, fitToHeight:0, printArea:'A1:G' + last};
+    return wb;
+  }
+  /*BUILD_END*/
+
+  function loadScript(src){
+    return new Promise(function(res, rej){
+      var el = document.createElement('script');
+      var t = setTimeout(function(){ rej(new Error('timeout')); }, 12000);
+      el.src = src; el.onload = function(){ clearTimeout(t); res(); }; el.onerror = function(){ clearTimeout(t); rej(new Error('load failed')); };
+      document.head.appendChild(el);
+    });
+  }
+  async function getExcelJS(){
+    if(window.ExcelJS) return window.ExcelJS;
+    var urls = ['https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'];
+    for(var i = 0; i < urls.length; i++){
+      try{ await loadScript(urls[i]); if(window.ExcelJS) return window.ExcelJS; }catch(e){}
+    }
+    return null;
+  }
+  function download(blob, name){
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+  }
+  /* same layout without colours; used only if the styled-file library cannot be loaded */
+  function plainExport(info, name){
     var rows = [
-      ['طلبية المصنع'], [],
-      ['Branch', i.branch], ['Delivery Date', fmtDate(i.delivery)], ['Order Date', fmtDate(i.orderDate)],
-      ['Priority', i.priority], ['Order Type', i.type], ['Delivery Location', i.location],
-      ['Branch Manager', i.branchMgr], ['Area Manager', i.areaMgr], [],
-      ['#','Code','Product','Collection','Category','Weight','Qty','Notes']
+      ['CHOCOLATE ORDER'],
+      ['BRANCH','', info.branch, 'DELIVERY DATE','', fmtDate(info.delivery)],
+      ['ORDER DATE','', fmtDate(info.orderDate), 'PRIORITY','', info.priority],
+      ['ORDER TYPE','', info.type, 'DELIVERY LOCATION','', info.location],
+      ['BRANCH MANAGER','', info.branchMgr, 'AREA MANAGER','', info.areaMgr],
+      ['No','ITEM CODE','ITEM NAME','QT.','UNIT','COLOR','NOTE']
     ];
     state.order.forEach(function(l, n){
-      rows.push([n+1, l.code, l.name, l.collection, l.category, l.weight, l.qty, l.note || '']);
+      rows.push([n + 1, /^\d{1,15}$/.test(String(l.code)) ? Number(l.code) : (l.code || ''), l.name, l.qty, l.weight || '', l.colour || '', l.note || '']);
     });
-    rows.push([]);
-    rows.push(['','','','','','Total Qty', totalQty()]);
-
     var ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = [{wch:16},{wch:18},{wch:36},{wch:20},{wch:20},{wch:12},{wch:8},{wch:30}];
+    ws['!cols'] = [{wch:5.4},{wch:17.9},{wch:29.4},{wch:10.9},{wch:10.9},{wch:11},{wch:12}];
+    ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:6}}];
+    for(var r = 1; r <= 4; r++){
+      ws['!merges'].push({s:{r:r,c:0},e:{r:r,c:1}}, {s:{r:r,c:3},e:{r:r,c:4}}, {s:{r:r,c:5},e:{r:r,c:6}});
+    }
     var wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Order');
-    var name = ('Order_' + (i.branch || 'Branch') + '_' + i.delivery).replace(/[^\w\-]+/g, '_') + '.xlsx';
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
     XLSX.writeFile(wb, name);
-    toast('تم تصدير الملف');
+  }
+
+  var exporting = false;
+  async function exportOrder(){
+    if(exporting) return;
+    if(!state.order.length){ toast('الطلب فارغ. أضف أصنافاً أولاً.'); return; }
+    if(!state.info.delivery){ closeSheet(); focusDate(); toast('اختر تاريخ التسليم (Delivery Date) أولاً.'); return; }
+
+    var i = state.info;
+    var base = String(i.branch || 'RAK2').trim().replace(/[^\w\-]+/g, '_');
+    var name = base + '_Chocolate_shop_order_' + i.delivery + '.xlsx';
+    exporting = true;
+    var btn = $('#exportBtn'); btn.disabled = true;
+    toast('جارٍ تجهيز الملف...');
+    try{
+      var EJ = await getExcelJS();
+      if(EJ){
+        var wb = buildWorkbook(EJ, i, state.order);
+        var buf = await wb.xlsx.writeBuffer();
+        download(new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), name);
+        toast('تم تصدير الملف');
+      } else if(window.XLSX){
+        plainExport(i, name);
+        toast('تم تصدير الملف بدون تنسيق الألوان. تحقق من الاتصال بالإنترنت.');
+      } else {
+        toast('تعذّر تحميل مكتبة Excel. تأكد من الاتصال بالإنترنت.');
+      }
+    }catch(e){
+      toast('حدث خطأ أثناء تجهيز الملف. حاول مرة أخرى.');
+    }
+    exporting = false;
+    renderTotals();
   }
 
   /* ---------- init ---------- */
