@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2f211b">
-<title>طلبية المصنع | Chocolala</title>
+<title>Factory Order | Chocolala</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f1f2f4; --surface:#ffffff; --ink:#1d1a18; --ink2:#57534e; --mute:#86817b;
@@ -16,7 +16,7 @@
     --accent:#a8741d; --accent-soft:#fbf3e0; --accent-line:#e6c98a;
     --danger:#b3261e; --danger-soft:#fdecea; --warn-soft:#fff4d6; --warn-ink:#6b4e00;
     --sticky-h:72px;
-    --font:"IBM Plex Sans Arabic","Segoe UI",Tahoma,system-ui,-apple-system,Arial,sans-serif;
+    --font:"IBM Plex Sans","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
   }
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
@@ -165,7 +165,7 @@
   .crumbs{width:100%; display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--ink2)}
   .crumbs button{border:0; background:none; padding:0; color:var(--accent); font-weight:600}
   .crumbs button:hover{text-decoration:underline}
-  .crumbs i{width:6px; height:6px; border:solid var(--mute); border-width:0 0 1.5px 1.5px; transform:rotate(45deg)}
+  .crumbs i{width:6px; height:6px; border:solid var(--mute); border-width:0 0 1.5px 1.5px; transform:rotate(-135deg)}
   .vtitle{margin:0; font-size:22px; font-weight:700; line-height:1.3}
   .vmeta{font-size:14px; color:var(--mute)}
 
@@ -291,8 +291,8 @@
 <header class="site">
   <div class="site-in">
     <a class="brand" href="index.html">Chocolala</a>
-    <h1 class="site-title">طلبية المصنع</h1>
-    <a class="site-link" href="index.html">الكتالوج</a>
+    <h1 class="site-title">Factory Order</h1>
+    <a class="site-link" href="index.html">Catalogue</a>
   </div>
 </header>
 
@@ -302,7 +302,7 @@
     <button type="button" class="infobar" id="infobar" data-a="info" aria-expanded="true" aria-controls="fields"></button>
     <div class="fields" id="fields">
       <div class="field"><label for="f_branch">Branch</label><input id="f_branch" type="text" autocomplete="off"></div>
-      <div class="field"><label for="f_delivery">Delivery Date <span class="req">مطلوب</span></label><input id="f_delivery" type="date"><div class="field-note" id="dateNote" hidden></div></div>
+      <div class="field"><label for="f_delivery">Delivery Date <span class="req">Required</span></label><input id="f_delivery" type="date"><div class="field-note" id="dateNote" hidden></div></div>
       <div class="field"><label for="f_orderDate">Order Date</label><input id="f_orderDate" type="date"></div>
       <div class="field"><label for="f_priority">Priority</label><input id="f_priority" type="text" list="priorityList" autocomplete="off"></div>
       <div class="field"><label for="f_type">Order Type</label><input id="f_type" type="text" autocomplete="off"></div>
@@ -314,45 +314,45 @@
   </section>
 
   <div class="cols">
-    <nav class="navside" id="navSide" aria-label="الأقسام"></nav>
+    <nav class="navside" id="navSide" aria-label="Sections"></nav>
 
     <main id="main">
       <div class="toolbar">
         <div class="search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <label for="search" class="sr">بحث</label>
-          <input id="search" type="search" placeholder="ابحث بالاسم أو الكود" autocomplete="off">
-          <button type="button" class="x" id="searchX" data-a="clearq" aria-label="مسح البحث" hidden>×</button>
+          <label for="search" class="sr">Search</label>
+          <input id="search" type="search" placeholder="Search by name or code" autocomplete="off">
+          <button type="button" class="x" id="searchX" data-a="clearq" aria-label="Clear search" hidden>×</button>
         </div>
-        <nav class="navstrip" id="navStrip" aria-label="الأقسام"></nav>
+        <nav class="navstrip" id="navStrip" aria-label="Sections"></nav>
       </div>
-      <div id="view"><div class="empty">جارٍ تحميل المنتجات...</div></div>
+      <div id="view"><div class="empty">Loading products...</div></div>
     </main>
 
-    <aside class="summary" id="summary" aria-label="الطلب الحالي">
+    <aside class="summary" id="summary" aria-label="Current order">
       <div class="shead">
-        <h2>الطلب الحالي</h2>
+        <h2>Current order</h2>
         <span class="inb" id="sCount">0</span>
-        <button type="button" class="sclose" data-a="closeSheet" aria-label="إغلاق">×</button>
+        <button type="button" class="sclose" data-a="closeSheet" aria-label="Close">×</button>
       </div>
       <div class="sbody" id="sBody"></div>
       <div class="sfoot">
-        <div class="swarn" id="sWarn" hidden><span>حدّد تاريخ التسليم قبل التصدير.</span><button type="button" data-a="goDate">تحديد</button></div>
-        <div class="tot"><span>عدد الأصناف</span><b id="tLines">0</b></div>
-        <div class="tot big"><span>إجمالي الكمية</span><b id="tQty">0</b></div>
-        <button type="button" class="export" id="exportBtn" data-a="export" disabled>تصدير الطلب إلى Excel</button>
-        <button type="button" class="clear" id="clearBtn" data-a="clear" hidden>مسح الطلب</button>
+        <div class="swarn" id="sWarn" hidden><span>Set the delivery date before exporting.</span><button type="button" data-a="goDate">Set date</button></div>
+        <div class="tot"><span>Items</span><b id="tLines">0</b></div>
+        <div class="tot big"><span>Total quantity</span><b id="tQty">0</b></div>
+        <button type="button" class="export" id="exportBtn" data-a="export" disabled>Export order to Excel</button>
+        <button type="button" class="clear" id="clearBtn" data-a="clear" hidden>Clear order</button>
       </div>
     </aside>
   </div>
 </div>
 
 <div class="mbar">
-  <div class="mt"><b><span id="mLines">0</span> صنف</b><span>الكمية <span id="mQty">0</span></span></div>
-  <button type="button" class="go" data-a="openSheet">مراجعة الطلب</button>
+  <div class="mt"><b><span id="mLines">0</span><span id="mLabel"> items</span></b><span>Qty <span id="mQty">0</span></span></div>
+  <button type="button" class="go" data-a="openSheet">Review order</button>
 </div>
 
-<dialog id="zoom"><button type="button" class="zx" data-a="closeZoom" aria-label="إغلاق">×</button><img alt=""><div class="zt"></div></dialog>
+<dialog id="zoom"><button type="button" class="zx" data-a="closeZoom" aria-label="Close">×</button><img alt=""><div class="zt"></div></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <!-- Optional: products.js (window.PRODUCTS_DATA = [...]) lets this page work even when opened as a local file -->
@@ -373,12 +373,12 @@
 
   /* ---------- sections: how collections are organised ---------- */
   var GROUPS = [
-    {id:'products',  title:'المنتجات', cols:['Italian Chocolate','Belgium chocolate','Chocolates','Chocolate egg','Candys','Healthy',
+    {id:'products',  title:'Products', cols:['Italian Chocolate','Belgium chocolate','Chocolates','Chocolate egg','Candys','Healthy',
                                           'Special collection','Arabic sweets','Dry fruit','Salty','Coffee','Jars','Secondary items']},
-    {id:'packaging', title:'التغليف والمستلزمات', cols:['Decoration','Acrylic','Forex']},
-    {id:'ops',       title:'التشغيل والقرطاسية', cols:['Operation']}
+    {id:'packaging', title:'Packaging & Supplies', cols:['Decoration','Acrylic','Forex']},
+    {id:'ops',       title:'Operations & Stationery', cols:['Operation']}
   ];
-  var OTHER = {id:'other', title:'أخرى', cols:[]};
+  var OTHER = {id:'other', title:'Other', cols:[]};
   var groupOfCol = {};
   GROUPS.forEach(function(g){ g.cols.forEach(function(c){ groupOfCol[c.toLowerCase()] = g.id; }); });
   var gidOf = function(col){ return groupOfCol[String(col || '').trim().toLowerCase()] || 'other'; };
@@ -517,6 +517,7 @@
     var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return p[2] + '-' + M[parseInt(p[1],10)-1] + '-' + p[0];
   }
+  var nItems = function(n){ return n + (n === 1 ? ' item' : ' items'); };
   var totalQty = function(){ return state.order.reduce(function(s,l){ return s + (l.qty || 0); }, 0); };
   function inOrderByCol(){
     var m = {};
@@ -528,22 +529,22 @@
   }
   function stepper(k, qty){
     return '<div class="stepper" data-k="' + esc(k) + '">' +
-      '<button type="button" data-a="dec" aria-label="إنقاص">−</button>' +
-      '<input type="number" inputmode="numeric" min="0" value="' + qty + '" data-a="qty" aria-label="الكمية">' +
-      '<button type="button" data-a="inc" aria-label="زيادة">+</button></div>';
+      '<button type="button" data-a="dec" aria-label="Decrease">−</button>' +
+      '<input type="number" inputmode="numeric" min="0" value="' + qty + '" data-a="qty" aria-label="Quantity">' +
+      '<button type="button" data-a="inc" aria-label="Increase">+</button></div>';
   }
   function ctl(p){
     var l = lineOf(p.key);
-    return l ? stepper(p.key, l.qty) : '<button type="button" class="add" data-a="add">إضافة</button>';
+    return l ? stepper(p.key, l.qty) : '<button type="button" class="add" data-a="add">Add</button>';
   }
 
   /* ---------- navigation ---------- */
   function renderNav(){
     var inb = inOrderByCol();
-    var badge = function(n){ return n ? '<span class="inb" title="في الطلب">' + n + '</span>' : ''; };
+    var badge = function(n){ return n ? '<span class="inb" title="In order">' + n + '</span>' : ''; };
     var side = '<button type="button" class="nitem' + (!state.col ? ' on' : '') + '" data-a="nav" data-col="">' +
-               '<span class="nm">كل الأقسام</span><span class="n">' + products.length + '</span></button>';
-    var strip = '<button type="button" class="chip' + (!state.col ? ' on' : '') + '" data-a="nav" data-col="">كل الأقسام</button>';
+               '<span class="nm">All sections</span><span class="n">' + products.length + '</span></button>';
+    var strip = '<button type="button" class="chip' + (!state.col ? ' on' : '') + '" data-a="nav" data-col="">All sections</button>';
     index.groups.forEach(function(g){
       side += '<div class="nhead">' + esc(g.title) + '</div>';
       strip += '<div class="sgrp"><span class="sgrp-t">' + esc(g.title) + '</span>';
@@ -566,7 +567,7 @@
   function rowHtml(p, showCol){
     var l = lineOf(p.key);
     var th = p.image
-      ? '<button type="button" class="pthumb" data-a="zoom" aria-label="تكبير الصورة">' + thumbImg(p) + '</button>'
+      ? '<button type="button" class="pthumb" data-a="zoom" aria-label="Enlarge image">' + thumbImg(p) + '</button>'
       : '<span class="pthumb"></span>';
     var meta = '';
     if(p.code) meta += '<span class="code"><bdi>' + esc(p.code) + '</bdi></span>';
@@ -581,7 +582,7 @@
     var inb = inOrderByCol();
     return index.groups.map(function(g){
       var total = g.cols.reduce(function(s, n){ return s + index.cols[n].items.length; }, 0);
-      return '<section class="hsec"><h2>' + esc(g.title) + '<small>' + total + ' صنف</small></h2><div class="cards">' +
+      return '<section class="hsec"><h2>' + esc(g.title) + '<small>' + nItems(total) + '</small></h2><div class="cards">' +
         g.cols.map(function(n){
           var c = index.cols[n], seen = {}, imgs = [];
           c.items.forEach(function(p){ if(p.image && !seen[p.image] && imgs.length < 4){ seen[p.image] = 1; imgs.push(p.image); } });
@@ -589,33 +590,33 @@
           for(var i = 0; i < 4; i++) cells += '<span>' + (imgs[i] ? '<img loading="lazy" alt="" src="images/' + encodeURI(imgs[i]) + '" onerror="this.remove()">' : '') + '</span>';
           return '<button type="button" class="pcard" data-a="nav" data-col="' + esc(n) + '">' +
             '<span class="mosaic">' + cells + '</span>' +
-            '<span class="cb"><span class="cn">' + esc(n) + '</span><span class="cc">' + c.items.length + ' صنف</span></span>' +
-            (inb[n] ? '<span class="inb" title="في الطلب">' + inb[n] + '</span>' : '') + '</button>';
+            '<span class="cb"><span class="cn">' + esc(n) + '</span><span class="cc">' + nItems(c.items.length) + '</span></span>' +
+            (inb[n] ? '<span class="inb" title="In order">' + inb[n] + '</span>' : '') + '</button>';
         }).join('') + '</div></section>';
     }).join('');
   }
 
   function renderView(){
     var box = $('#view'), q = state.q.trim().toLowerCase(), html = '';
-    if(usingSample) html += '<div class="notice">بيانات تجريبية. ضع ملف products.xlsx بجانب هذه الصفحة لتظهر منتجاتك.</div>';
+    if(usingSample) html += '<div class="notice">Sample data. Put products.xlsx next to this page to show your products.</div>';
 
     if(q){
       var res = products.filter(function(p){
         return [p.name, p.code, p.category, p.collection].some(function(v){ return String(v).toLowerCase().indexOf(q) !== -1; });
       });
-      html += '<div class="vhead"><h2 class="vtitle">نتائج البحث</h2><span class="vmeta">' + res.length + ' نتيجة</span></div>';
+      html += '<div class="vhead"><h2 class="vtitle">Search results</h2><span class="vmeta">' + res.length + (res.length === 1 ? ' result' : ' results') + '</span></div>';
       if(!res.length){
-        html += '<div class="card empty">لا توجد نتائج لـ «' + esc(state.q.trim()) + '». جرّب اسماً أو كوداً آخر.</div>';
+        html += '<div class="card empty">No results for “' + esc(state.q.trim()) + '”. Try another name or code.</div>';
       } else {
         html += '<div class="plist">' + res.slice(0, 150).map(function(p){ return rowHtml(p, true); }).join('') + '</div>';
-        if(res.length > 150) html += '<div class="empty">يظهر أول 150 نتيجة. اكتب أكثر لتضييق البحث.</div>';
+        if(res.length > 150) html += '<div class="empty">Showing the first 150 results. Type more to narrow the search.</div>';
       }
     } else if(state.col && index.cols[state.col]){
       var c = index.cols[state.col], gid = gidOf(state.col);
-      html += '<div class="vhead"><div class="crumbs"><button type="button" data-a="nav" data-col="">كل الأقسام</button><i></i><span>' +
-              esc(gTitle(gid)) + '</span></div><h2 class="vtitle">' + esc(c.name) + '</h2><span class="vmeta">' + c.items.length + ' صنف</span></div>';
+      html += '<div class="vhead"><div class="crumbs"><button type="button" data-a="nav" data-col="">All sections</button><i></i><span>' +
+              esc(gTitle(gid)) + '</span></div><h2 class="vtitle">' + esc(c.name) + '</h2><span class="vmeta">' + nItems(c.items.length) + '</span></div>';
       if(c.catOrder.length > 1){
-        html += '<div class="catbar"><button type="button" class="chip' + (!state.cat ? ' on' : '') + '" data-a="cat" data-cat="">الكل <span class="n">' + c.items.length + '</span></button>' +
+        html += '<div class="catbar"><button type="button" class="chip' + (!state.cat ? ' on' : '') + '" data-a="cat" data-cat="">All <span class="n">' + c.items.length + '</span></button>' +
           c.catOrder.map(function(n){
             return '<button type="button" class="chip' + (state.cat === n ? ' on' : '') + '" data-a="cat" data-cat="' + esc(n) + '">' + esc(n) +
                    ' <span class="n">' + c.cats[n].length + '</span></button>';
@@ -636,7 +637,7 @@
   function renderSummary(){
     var body = $('#sBody');
     if(!state.order.length){
-      body.innerHTML = '<div class="sempty">طلبك فارغ. اختر قسماً أو ابحث عن صنف، ثم اضغط «إضافة».</div>';
+      body.innerHTML = '<div class="sempty">Your order is empty. Choose a section or search for an item, then press “Add”.</div>';
     } else {
       var buckets = {}, order = [];
       state.order.forEach(function(l){
@@ -655,9 +656,9 @@
             return '<div class="sline" data-k="' + esc(l.key) + '">' +
               '<div><div class="sn">' + esc(l.name) + '</div><div class="sm">' + meta + '</div></div>' +
               stepper(l.key, l.qty) +
-              '<div class="sact"><button type="button" class="link" data-a="note">' + (l.note ? 'تعديل الملاحظة' : 'إضافة ملاحظة') + '</button>' +
-              '<button type="button" class="link danger" data-a="rm">حذف</button></div>' +
-              (noteOpen ? '<input class="note" type="text" data-a="note-in" placeholder="ملاحظة (اختياري)" value="' + esc(l.note || '') + '">' : '') +
+              '<div class="sact"><button type="button" class="link" data-a="note">' + (l.note ? 'Edit note' : 'Add note') + '</button>' +
+              '<button type="button" class="link danger" data-a="rm">Remove</button></div>' +
+              (noteOpen ? '<input class="note" type="text" data-a="note-in" placeholder="Note (optional)" value="' + esc(l.note || '') + '">' : '') +
               '</div>';
           }).join('');
       }).join('');
@@ -667,7 +668,7 @@
   function renderTotals(){
     var n = state.order.length, q = totalQty();
     $('#sCount').textContent = n; $('#tLines').textContent = n; $('#tQty').textContent = q;
-    $('#mLines').textContent = n; $('#mQty').textContent = q;
+    $('#mLines').textContent = n; $('#mQty').textContent = q; $('#mLabel').textContent = (n === 1 ? ' item' : ' items');
     $('#exportBtn').disabled = !n;
     $('#clearBtn').hidden = !n;
     $('#sWarn').hidden = !(n && !state.info.delivery);
@@ -679,17 +680,17 @@
     var i = state.info, d = i.delivery, past = d && d < today();
     var sum = [];
     if(i.branch) sum.push('<span><bdi>' + esc(i.branch) + '</bdi></span>');
-    sum.push('<span class="ib-date' + (!d ? ' bad' : (past ? ' past' : '')) + '">التسليم: <bdi>' +
-             (d ? esc(fmtDate(d)) : 'لم يُحدَّد') + '</bdi>' + (past ? ' (قبل تاريخ اليوم)' : '') + '</span>');
+    sum.push('<span class="ib-date' + (!d ? ' bad' : (past ? ' past' : '')) + '">Delivery: <bdi>' +
+             (d ? esc(fmtDate(d)) : 'Not set') + '</bdi>' + (past ? ' (before today)' : '') + '</span>');
     if(i.priority) sum.push('<span><bdi>' + esc(i.priority) + '</bdi></span>');
     if(i.location) sum.push('<span><bdi>' + esc(i.location) + '</bdi></span>');
-    $('#infobar').innerHTML = '<span class="ib-title">بيانات الطلب</span><span class="ib-sum">' + sum.join('') + '</span>' +
-                              '<span class="ib-act">' + (infoOpen ? 'إخفاء' : 'تعديل') + '</span>';
+    $('#infobar').innerHTML = '<span class="ib-title">Order details</span><span class="ib-sum">' + sum.join('') + '</span>' +
+                              '<span class="ib-act">' + (infoOpen ? 'Hide' : 'Edit') + '</span>';
     $('#infobar').setAttribute('aria-expanded', infoOpen ? 'true' : 'false');
     $('#fields').hidden = !infoOpen;
     var note = $('#dateNote');
     note.hidden = !past;
-    note.textContent = past ? 'التاريخ قبل تاريخ اليوم. تأكد منه.' : '';
+    note.textContent = past ? 'The date is before today. Please check it.' : '';
   }
   function setInfoOpen(v){ infoOpen = v; renderInfoBar(); }
   function bindInfo(){
@@ -792,7 +793,7 @@
         if(l){ openNotes[k] = true; renderSummary(); var ni = $$('.sline').filter(function(x){ return x.dataset.k === k; })[0]; if(ni){ var inp = ni.querySelector('.note'); if(inp) inp.focus(); } }
         break;
       case 'clear':
-        if(confirm('مسح كل الأصناف من الطلب؟')){ state.order = []; openNotes = {}; save(); renderSummary(); renderNav(); renderView(); }
+        if(confirm('Remove all items from the order?')){ state.order = []; openNotes = {}; save(); renderSummary(); renderNav(); renderView(); }
         break;
       case 'info': setInfoOpen(!infoOpen); break;
       case 'goDate': closeSheet(); focusDate(); break;
@@ -970,30 +971,30 @@
   var exporting = false;
   async function exportOrder(){
     if(exporting) return;
-    if(!state.order.length){ toast('الطلب فارغ. أضف أصنافاً أولاً.'); return; }
-    if(!state.info.delivery){ closeSheet(); focusDate(); toast('اختر تاريخ التسليم (Delivery Date) أولاً.'); return; }
+    if(!state.order.length){ toast('The order is empty. Add items first.'); return; }
+    if(!state.info.delivery){ closeSheet(); focusDate(); toast('Choose the Delivery Date first.'); return; }
 
     var i = state.info;
     var base = String(i.branch || 'RAK2').trim().replace(/[^\w\-]+/g, '_');
     var name = base + '_Chocolate_shop_order_' + i.delivery + '.xlsx';
     exporting = true;
     var btn = $('#exportBtn'); btn.disabled = true;
-    toast('جارٍ تجهيز الملف...');
+    toast('Preparing the file...');
     try{
       var EJ = await getExcelJS();
       if(EJ){
         var wb = buildWorkbook(EJ, i, state.order);
         var buf = await wb.xlsx.writeBuffer();
         download(new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), name);
-        toast('تم تصدير الملف');
+        toast('File exported');
       } else if(window.XLSX){
         plainExport(i, name);
-        toast('تم تصدير الملف بدون تنسيق الألوان. تحقق من الاتصال بالإنترنت.');
+        toast('File exported without colours. Check your internet connection.');
       } else {
-        toast('تعذّر تحميل مكتبة Excel. تأكد من الاتصال بالإنترنت.');
+        toast('Could not load the Excel library. Check your internet connection.');
       }
     }catch(e){
-      toast('حدث خطأ أثناء تجهيز الملف. حاول مرة أخرى.');
+      toast('Something went wrong while preparing the file. Please try again.');
     }
     exporting = false;
     renderTotals();
