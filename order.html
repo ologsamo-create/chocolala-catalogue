@@ -260,6 +260,20 @@
   .clear:hover{text-decoration:underline}
   .clear[hidden]{display:none}
 
+  /* ---------- colour palette / line image ---------- */
+  .chipc{display:inline-block; width:13px; height:13px; border-radius:3px; border:1px solid rgba(0,0,0,.3); vertical-align:-2px; margin-inline-end:5px}
+  .pal{grid-column:1 / -1; background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; box-shadow:0 2px 10px rgba(20,16,12,.08)}
+  .pal-t{font-size:12px; color:var(--ink2); margin:8px 0 4px}
+  .pal-t:first-child{margin-top:0}
+  .pal-grid{display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); gap:3px}
+  .sw{aspect-ratio:1; min-width:0; padding:0; border:1px solid rgba(0,0,0,.2); border-radius:3px}
+  .sw:hover{outline:2px solid var(--accent); outline-offset:1px}
+  .sw.on{outline:2px solid var(--ink); outline-offset:1px}
+  .pal-actions{display:flex; align-items:center; flex-wrap:wrap; gap:6px 16px; margin-top:10px; font-size:13px; color:var(--ink2)}
+  .pal-actions label{display:flex; align-items:center; gap:8px}
+  .pal-actions input[type=color]{width:36px; height:26px; padding:0; border:1px solid var(--field); border-radius:4px; background:#fff}
+  .lthumb{grid-column:1 / -1; display:flex; align-items:center; gap:10px}
+  .lthumb img{width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--line); background:#fff}
   /* ---------- mobile bar ---------- */
   .mbar{
     position:fixed; inset-inline:0; bottom:0; z-index:40; display:flex; align-items:center; gap:14px;
@@ -352,6 +366,7 @@
   <button type="button" class="go" data-a="openSheet">Review order</button>
 </div>
 
+<input type="file" id="imgIn" accept="image/*" hidden>
 <dialog id="zoom"><button type="button" class="zx" data-a="closeZoom" aria-label="Close">×</button><img alt=""><div class="zt"></div></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -411,7 +426,60 @@
   var products = [], byKey = {}, byId = {};
   var index = { groups:[], cols:{} };
   var usingSample = false;
-  var openNotes = {};
+  var openNotes = {}, openPal = {}, imgTarget = null;
+
+  /* Excel-style colour palette: theme colours with 5 tints each, then the standard colours */
+  var THEME = [['FFFFFF','White'],['000000','Black'],['E7E6E6','Light Gray'],['44546A','Blue Gray'],['4472C4','Blue'],
+               ['ED7D31','Orange'],['A5A5A5','Gray'],['FFC000','Gold'],['5B9BD5','Light Blue'],['70AD47','Green']];
+  var STANDARD = [['C00000','Dark Red'],['FF0000','Red'],['FFC000','Orange'],['FFFF00','Yellow'],['92D050','Light Green'],
+                  ['00B050','Green'],['00B0F0','Light Blue'],['0070C0','Blue'],['002060','Dark Blue'],['7030A0','Purple']];
+  function mixHex(hex, to, f){
+    var c = [0, 2, 4].map(function(i){ return parseInt(hex.substr(i, 2), 16); });
+    return c.map(function(v){
+      var r = Math.round(v + (to - v) * f);
+      return ('0' + Math.max(0, Math.min(255, r)).toString(16)).slice(-2);
+    }).join('').toUpperCase();
+  }
+  function themeTints(hex, name){
+    if(hex === 'FFFFFF') return [[hex, name], [mixHex(hex,0,.05), name + ', darker 5%'], [mixHex(hex,0,.15), name + ', darker 15%'], [mixHex(hex,0,.25), name + ', darker 25%'], [mixHex(hex,0,.35), name + ', darker 35%'], [mixHex(hex,0,.5), name + ', darker 50%']];
+    if(hex === '000000') return [[hex, name], [mixHex(hex,255,.5), name + ', lighter 50%'], [mixHex(hex,255,.35), name + ', lighter 35%'], [mixHex(hex,255,.25), name + ', lighter 25%'], [mixHex(hex,255,.15), name + ', lighter 15%'], [mixHex(hex,255,.05), name + ', lighter 5%']];
+    return [[hex, name], [mixHex(hex,255,.8), name + ', lighter 80%'], [mixHex(hex,255,.6), name + ', lighter 60%'], [mixHex(hex,255,.4), name + ', lighter 40%'], [mixHex(hex,0,.25), name + ', darker 25%'], [mixHex(hex,0,.5), name + ', darker 50%']];
+  }
+  function paletteHtml(l){
+    var cols = THEME.map(function(t){ return themeTints(t[0], t[1]); }), grid = '';
+    for(var r = 0; r < 6; r++) cols.forEach(function(col){ grid += sw(col[r], l); });
+    return '<div class="pal"><div class="pal-t">Theme colors</div><div class="pal-grid">' + grid + '</div>' +
+      '<div class="pal-t">Standard colors</div><div class="pal-grid">' + STANDARD.map(function(c){ return sw(c, l); }).join('') + '</div>' +
+      '<div class="pal-actions"><button type="button" class="link" data-a="color-none">No fill</button>' +
+      '<label>More colors <input type="color" data-a="color-pick" value="#' + esc(l.color || 'FFFFFF') + '"></label></div></div>';
+  }
+  function sw(c, l){
+    return '<button type="button" class="sw' + (l.color === c[0] ? ' on' : '') + '" data-a="color-set" data-hex="' + c[0] + '" data-name="' + esc(c[1]) + '" title="' + esc(c[1]) + '" aria-label="' + esc(c[1]) + '" style="background:#' + c[0] + '"></button>';
+  }
+  var textOn = function(hex){
+    var c = [0, 2, 4].map(function(i){ return parseInt(hex.substr(i, 2), 16); });
+    return (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) > 150 ? '000000' : 'FFFFFF';
+  };
+  function fileToSmallImage(file, max){
+    return new Promise(function(res, rej){
+      var fr = new FileReader();
+      fr.onerror = rej;
+      fr.onload = function(){
+        var im = new Image();
+        im.onerror = rej;
+        im.onload = function(){
+          var k = Math.min(1, max / Math.max(im.width, im.height));
+          var c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k));
+          var x = c.getContext('2d');
+          x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+          res({data:c.toDataURL('image/jpeg', 0.8), w:c.width, h:c.height});
+        };
+        im.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
 
   var lineOf = function(k){ for(var i = 0; i < state.order.length; i++) if(state.order[i].key === k) return state.order[i]; return null; };
   var colOf = function(x){ return x.collection || x.category; };
@@ -432,7 +500,8 @@
     state.info.orderDate = today();
   }
   function save(){
-    try{ localStorage.setItem(LS, JSON.stringify({info:state.info, order:state.order})); }catch(e){}
+    try{ localStorage.setItem(LS, JSON.stringify({info:state.info, order:state.order})); }
+    catch(e){ if(!save.warned){ save.warned = true; toast('Browser storage is full. Added images may not be kept if you close this page.'); } }
   }
 
   /* ---------- products ---------- */
@@ -657,8 +726,12 @@
               '<div><div class="sn">' + esc(l.name) + '</div><div class="sm">' + meta + '</div></div>' +
               stepper(l.key, l.qty) +
               '<div class="sact"><button type="button" class="link" data-a="note">' + (l.note ? 'Edit note' : 'Add note') + '</button>' +
+              '<button type="button" class="link" data-a="color">' + (l.color ? '<span class="chipc" style="background:#' + esc(l.color) + '"></span>' : '') + 'Color</button>' +
+              '<button type="button" class="link" data-a="img">' + (l.img ? 'Replace image' : 'Add image') + '</button>' +
               '<button type="button" class="link danger" data-a="rm">Remove</button></div>' +
               (noteOpen ? '<input class="note" type="text" data-a="note-in" placeholder="Note (optional)" value="' + esc(l.note || '') + '">' : '') +
+              (openPal[l.key] ? paletteHtml(l) : '') +
+              (l.img ? '<div class="lthumb"><img alt="" src="' + l.img + '"><button type="button" class="link danger" data-a="img-rm">Remove image</button></div>' : '') +
               '</div>';
           }).join('');
       }).join('');
@@ -737,7 +810,7 @@
   function setQty(k, n, p){
     var l = lineOf(k);
     if(n <= 0){
-      if(l){ state.order = state.order.filter(function(x){ return x !== l; }); delete openNotes[k]; save(); structural(k); }
+      if(l){ state.order = state.order.filter(function(x){ return x !== l; }); delete openNotes[k]; delete openPal[k]; save(); structural(k); }
       return;
     }
     if(!l){
@@ -792,8 +865,23 @@
       case 'note':
         if(l){ openNotes[k] = true; renderSummary(); var ni = $$('.sline').filter(function(x){ return x.dataset.k === k; })[0]; if(ni){ var inp = ni.querySelector('.note'); if(inp) inp.focus(); } }
         break;
+      case 'color':
+        if(l){ openPal[k] = !openPal[k]; renderSummary(); }
+        break;
+      case 'color-set':
+        if(l){ l.color = t.dataset.hex; l.colourName = t.dataset.name; delete openPal[k]; save(); renderSummary(); }
+        break;
+      case 'color-none':
+        if(l){ delete l.color; delete l.colourName; delete openPal[k]; save(); renderSummary(); }
+        break;
+      case 'img':
+        if(l){ imgTarget = k; var fi = $('#imgIn'); fi.value = ''; fi.click(); }
+        break;
+      case 'img-rm':
+        if(l){ delete l.img; delete l.imgW; delete l.imgH; save(); renderSummary(); }
+        break;
       case 'clear':
-        if(confirm('Remove all items from the order?')){ state.order = []; openNotes = {}; save(); renderSummary(); renderNav(); renderView(); }
+        if(confirm('Remove all items from the order?')){ state.order = []; openNotes = {}; openPal = {}; save(); renderSummary(); renderNav(); renderView(); }
         break;
       case 'info': setInfoOpen(!infoOpen); break;
       case 'goDate': closeSheet(); focusDate(); break;
@@ -825,6 +913,21 @@
   });
   document.addEventListener('change', function(e){
     var t = e.target;
+    if(t.id === 'imgIn'){
+      var f = t.files && t.files[0], tl = imgTarget && lineOf(imgTarget);
+      if(f && tl){
+        fileToSmallImage(f, 600).then(function(r){
+          tl.img = r.data; tl.imgW = r.w; tl.imgH = r.h; save(); renderSummary();
+          toast('Image added. It will appear in the exported Excel file.');
+        }).catch(function(){ toast('Could not read this image. Try a JPG or PNG file.'); });
+      }
+      return;
+    }
+    if(t.dataset && t.dataset.a === 'color-pick'){
+      var hh = t.closest('[data-k]'), kk = hh && hh.dataset.k, ll = kk && lineOf(kk);
+      if(ll){ ll.color = t.value.replace('#', '').toUpperCase(); ll.colourName = '#' + ll.color; delete openPal[kk]; save(); renderSummary(); }
+      return;
+    }
     if(t.dataset && t.dataset.a === 'qty'){
       var host = t.closest('[data-k]'), k = host && host.dataset.k, n = parseInt(t.value, 10);
       if(k) setQty(k, n > 0 ? n : 0);
@@ -842,19 +945,25 @@
   function buildWorkbook(EJ, info, lines){
     var wb = new EJ.Workbook();
     var ws = wb.addWorksheet('Sheet1');
-    ws.columns = [{width:5.43},{width:17.86},{width:29.43},{width:10.86},{width:10.86},{width:11},{width:12}];
+    var hasImg = lines.some(function(l){ return !!l.img; });
+    var NC = hasImg ? 8 : 7, LAST = hasImg ? 'H' : 'G';
+    ws.columns = [{width:5.43},{width:17.86},{width:29.43},{width:10.86},{width:10.86},{width:11},{width:12}].concat(hasImg ? [{width:18}] : []);
     var thin = {style:'thin'}, med = {style:'medium'};
     var last = 6 + lines.length;
-    var font = function(sz, b){ return {name:'Calibri', size:sz, bold:!!b}; };
+    var font = function(sz, b, argb){ var f = {name:'Calibri', size:sz, bold:!!b}; if(argb) f.color = {argb:argb}; return f; };
     var center = {horizontal:'center', vertical:'middle', wrapText:true};
+    var contrast = function(hex){
+      var c = [0, 2, 4].map(function(i){ return parseInt(hex.substr(i, 2), 16); });
+      return (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) > 150 ? 'FF000000' : 'FFFFFFFF';
+    };
 
     /* base styling for the whole table */
     for(var r = 1; r <= last; r++){
-      for(var c = 1; c <= 7; c++){
+      for(var c = 1; c <= NC; c++){
         var cell = ws.getCell(r, c);
         cell.border = {
           top: r === 1 ? med : thin, bottom: r === last ? med : thin,
-          left: c === 1 ? med : thin, right: c === 7 ? med : thin
+          left: c === 1 ? med : thin, right: c === NC ? med : thin
         };
         cell.alignment = center;
         cell.font = font(12, r <= 6);
@@ -863,11 +972,11 @@
     }
 
     /* title */
-    ws.mergeCells('A1:G1');
+    ws.mergeCells('A1:' + LAST + '1');
     ws.getCell('A1').value = 'CHOCOLATE ORDER';
     ws.getCell('A1').font = font(14, true);
 
-    /* order details: label (A:B) + value (C) | label (D:E) + value (F:G); rows 2 and 4 are shaded */
+    /* order details: label (A:B) + value (C) | label (D:E) + value (F:last); rows 2 and 4 are shaded */
     var d = [
       ['BRANCH', info.branch, 'DELIVERY DATE', toUtcDate(info.delivery) || info.delivery],
       ['ORDER DATE', toUtcDate(info.orderDate) || info.orderDate, 'PRIORITY', info.priority],
@@ -878,19 +987,19 @@
       var r = i + 2, shade = (i % 2 === 0);
       ws.mergeCells('A' + r + ':B' + r);
       ws.mergeCells('D' + r + ':E' + r);
-      ws.mergeCells('F' + r + ':G' + r);
+      ws.mergeCells('F' + r + ':' + LAST + r);
       [['A', row[0]], ['C', row[1]], ['D', row[2]], ['F', row[3]]].forEach(function(x){
         var cell = ws.getCell(x[0] + r);
         cell.value = x[1] == null ? '' : x[1];
         if(x[1] instanceof Date) cell.numFmt = 'mm-dd-yy';
       });
       if(shade){
-        for(var c = 1; c <= 7; c++) ws.getCell(r, c).fill = {type:'pattern', pattern:'solid', fgColor:{argb:GRAY}};
+        for(var c = 1; c <= NC; c++) ws.getCell(r, c).fill = {type:'pattern', pattern:'solid', fgColor:{argb:GRAY}};
       }
     });
 
     /* column headers */
-    ['No','ITEM CODE','ITEM NAME','QT.','UNIT','COLOR','NOTE'].forEach(function(h, i){
+    ['No','ITEM CODE','ITEM NAME','QT.','UNIT','COLOR','NOTE'].concat(hasImg ? ['IMAGE'] : []).forEach(function(h, i){
       var cell = ws.getCell(6, i + 1);
       cell.value = h;
       cell.font = font(i === 0 ? 11 : 12, true);
@@ -901,22 +1010,36 @@
     var cap = {3:26, 5:9, 6:10, 7:10};
     lines.forEach(function(l, i){
       var r = 7 + i, code = String(l.code == null ? '' : l.code).trim();
-      var vals = [i + 1, /^\d{1,15}$/.test(code) ? Number(code) : (code || null), l.name || '', l.qty, l.weight || null, l.colour || null, l.note || null];
+      var colourText = l.colourName || l.colour || null;
+      var vals = [i + 1, /^\d{1,15}$/.test(code) ? Number(code) : (code || null), l.name || '', l.qty, l.weight || null, colourText, l.note || null];
       var rows = 1;
       vals.forEach(function(v, j){
         var cell = ws.getCell(r, j + 1);
         cell.value = v;
-        cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:WHITE}};
-        cell.font = font(j === 0 ? 11 : 12, j === 0);
+        var fillHex = (j === 5 && l.color) ? 'FF' + l.color : WHITE;
+        cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:fillHex}};
+        cell.font = font(j === 0 ? 11 : 12, j === 0, (j === 5 && l.color) ? contrast(l.color) : null);
         if(cap[j + 1] && typeof v === 'string') rows = Math.max(rows, Math.ceil(v.length / cap[j + 1]));
       });
-      ws.getRow(r).height = Math.max(24.95, rows * 16 + 9);
+      var height = Math.max(24.95, rows * 16 + 9);
+      if(hasImg){
+        var cellImg = ws.getCell(r, 8);
+        cellImg.fill = {type:'pattern', pattern:'solid', fgColor:{argb:WHITE}};
+        if(l.img){
+          height = Math.max(height, 66);
+          var w0 = l.imgW || 120, h0 = l.imgH || 80, k = Math.min(1, 118 / w0, 82 / h0);
+          var w = w0 * k, h = h0 * k, colPx = 131, rowPx = height / 0.75;
+          var id = wb.addImage({base64: String(l.img).split(',').pop(), extension: 'jpeg'});
+          ws.addImage(id, {tl:{col: 7 + Math.max(0, (colPx - w) / 2 / colPx), row: r - 1 + Math.max(0, (rowPx - h) / 2 / rowPx)}, ext:{width: w, height: h}, editAs:'oneCell'});
+        }
+      }
+      ws.getRow(r).height = height;
     });
 
     for(var h = 1; h <= 5; h++) ws.getRow(h).height = 30;
     ws.getRow(6).height = 24.95;
 
-    ws.pageSetup = {orientation:'portrait', paperSize:9, fitToPage:true, fitToWidth:1, fitToHeight:0, printArea:'A1:G' + last};
+    ws.pageSetup = {orientation:'portrait', paperSize:9, fitToPage:true, fitToWidth:1, fitToHeight:0, printArea:'A1:' + LAST + last};
     return wb;
   }
   /*BUILD_END*/
@@ -955,7 +1078,7 @@
       ['No','ITEM CODE','ITEM NAME','QT.','UNIT','COLOR','NOTE']
     ];
     state.order.forEach(function(l, n){
-      rows.push([n + 1, /^\d{1,15}$/.test(String(l.code)) ? Number(l.code) : (l.code || ''), l.name, l.qty, l.weight || '', l.colour || '', l.note || '']);
+      rows.push([n + 1, /^\d{1,15}$/.test(String(l.code)) ? Number(l.code) : (l.code || ''), l.name, l.qty, l.weight || '', l.colourName || l.colour || '', l.note || '']);
     });
     var ws = XLSX.utils.aoa_to_sheet(rows);
     ws['!cols'] = [{wch:5.4},{wch:17.9},{wch:29.4},{wch:10.9},{wch:10.9},{wch:11},{wch:12}];
@@ -989,7 +1112,7 @@
         toast('File exported');
       } else if(window.XLSX){
         plainExport(i, name);
-        toast('File exported without colours. Check your internet connection.');
+        toast('File exported without colours and images. Check your internet connection.');
       } else {
         toast('Could not load the Excel library. Check your internet connection.');
       }
